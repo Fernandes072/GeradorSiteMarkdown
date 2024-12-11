@@ -1,0 +1,332 @@
+/* github */
+html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{font-weight:600}html body .highlight,html body>ol,html body>p,html body>ul{margin-bottom:16px}html body blockquote,html body code,html body kbd{background-color:#363d45}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#ccc;background-color:#24292e;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body blockquote>:first-child,html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#fff}html body del,html body h6{color:#a3a3a3}html body h1{font-size:2.25em;padding-bottom:.3em}html body h2{font-size:1.75em;padding-bottom:.3em}html body h3{font-size:1.5em}html body h4{font-size:1.25em}html body h5,html body h6{font-size:1em}html body strong{color:#fff}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;word-wrap:break-word}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body li>p,html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body blockquote>:last-child,html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#a3a3a3;border-left:4px solid #48525c}html body hr{height:4px;margin:32px 0;background-color:#48525c;border:0}html body table{margin:10px 0 15px;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#fff}html body table td,html body table th{border:1px solid #48525c;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#fff;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#48525c;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#fff;border:1px solid #48525c;border-bottom:2px solid #3a424b;padding:2px 4px;border-radius:3px}@media print{html body{background-color:#24292e}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#fff;page-break-after:avoid}html body blockquote{color:#a3a3a3}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}
+/* github dark */
+pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px} .hljs{color:#c9d1d9;background:#0d1117}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#ff7b72}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#d2a8ff}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#79c0ff}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#a5d6ff}.hljs-built_in,.hljs-symbol{color:#ffa657}.hljs-code,.hljs-comment,.hljs-formula{color:#8b949e}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#7ee787}.hljs-subst{color:#c9d1d9}.hljs-section{color:#1f6feb;font-weight:700}.hljs-bullet{color:#f2cc60}.hljs-emphasis{color:#c9d1d9;font-style:italic}.hljs-strong{color:#c9d1d9;font-weight:700}.hljs-addition{color:#aff5b4;background-color:#033a16}.hljs-deletion{color:#ffdcd7;background-color:#67060c}
+
+html body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+    font-size: 1.1em !important;
+    letter-spacing: .01rem;
+    max-width: 960px;
+    margin: 0;
+    padding: 20px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+html body li>p {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.markdown-body .hljs-string {
+    color: #0cab51;
+}
+
+.quest {
+    color: orange;
+    font-weight: bold;
+    font-size: 1em;
+}
+
+.q-item {
+    color: #6ea8fe;
+    font-weight: bold;
+}
+
+.quest-big {
+    color: orange;
+    font-weight: bold;
+    font-size: 1.4em;
+    padding-right: 0.3em;
+}
+
+.tx-destaque {
+    color: orange;
+    font-weight: bold;
+    font-size: 1.4rem
+}
+
+.h-line {
+    background-color: orange;
+    height: 5px;
+    margin-top: 2.5rem
+}
+
+/**
+ * Butão Copiar Código
+ */
+.sourceCode {
+    position: relative;
+    border-radius: 4px;
+    padding: 0;
+}
+
+.ca-copy-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px;
+    background-color: #555;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url('ca-icons.svg#copy');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 16px 16px;
+}
+
+.ca-copy-button:hover {
+    background-color: #6f2af8;
+}
+
+.ca-tooltip {
+    position: absolute;
+    top: 0;
+    right: 120%;
+    background-color: #555;
+    color: #f5f5f5;
+    text-align: center;
+    border-radius: 4px;
+    padding: 2px 12px;
+    z-index: 999;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.ca-copy-button:hover .ca-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+/*
+ * Butões Voltar e Avançar
+ */
+.fixed-buttons {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 12px;
+    margin: 0;
+    z-index: 998;
+}
+
+.fixed-buttons button {
+    padding: 10px 12px;
+    font-size: 16px;
+    background-color: #6f2af8;
+    color: #f5f5f5;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fixed-buttons button img {
+    margin-right: 8px;
+}
+
+.fixed-buttons button:hover {
+    background-color: #4f07df;
+}
+
+
+.ca-alert-warning {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    color: #ffda6a !important;
+    background-color: #332701 !important;
+    border-color: #997404 !important;
+}
+
+
+/* Definindo o container */
+.my-cols {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 12px;
+}
+
+/* Definindo as colunas */
+.col-1 {
+    grid-column: span 1;
+}
+
+.col-2 {
+    grid-column: span 2;
+}
+
+.col-3 {
+    grid-column: span 3;
+}
+
+.col-4 {
+    grid-column: span 4;
+}
+
+.col-5 {
+    grid-column: span 5;
+}
+
+.col-6 {
+    grid-column: span 6;
+}
+
+.col-7 {
+    grid-column: span 7;
+}
+
+.col-8 {
+    grid-column: span 8;
+}
+
+.col-9 {
+    grid-column: span 9;
+}
+
+.col-10 {
+    grid-column: span 10;
+}
+
+.col-11 {
+    grid-column: span 11;
+}
+
+.col-12 {
+    grid-column: span 12;
+}
+
+.my-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.my-spaced-list li {
+    margin-bottom: 0.5em;
+}
+
+.my-spaced-list li:last-child {
+    margin-bottom: 0;
+}
+
+/*
+ * Minimap
+ */
+#ca-minimap {
+    position: fixed;
+    right: 0px;
+    top: 0px;
+    width: 100px;
+    overflow: hidden;
+    border: solid 1px gray;
+    background-color: #161a1d;
+    border-radius: 3px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.5s;
+    z-index: 998;
+}
+
+#ca-minimap.hidden {
+    display: none;
+}
+
+#ca-minimap .ca-mini-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none; /* Desativa interações do usuário */
+    /* IMPORTANTÍSSIMO. Perdi muitas horas por conta da ausência de transform-origin: top left; */
+    transform-origin: top left; /* Garante que a escala é aplicada corretamente */
+}
+
+#ca-minimap .ca-rect-area-visivel {
+    position: absolute;
+    box-sizing: border-box;
+    border: solid 1px #ff00ff75;
+    border-radius: 3px;
+    background-color: #ff00ff20;
+    z-index: 999;
+}
+
+.ca-minimap-hide-btn-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+}
+.ca-minimap-hide-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px 10px 0px 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ca-minimap-hide-btn:hover {
+    background-color: #161a1d;
+}
+.ca-minimap-hide-btn:hover .ca-tooltip {
+    position: absolute;
+    visibility: visible;
+    opacity: 1;
+    background-color: #161a1d;
+    right: 110%;
+    width: 15ch;
+    padding: 6px 7px;
+}
+.ca-minimap-hide-btn.hidden {
+    display: none;
+}
+
+
+.ca-all-content-title-section {
+    border-radius: 6px;
+    width: 100%;
+    text-align: center;
+    padding: 64px 10px;
+    margin: 36px 0;
+    box-sizing: border-box;
+    font-size: 1.5rem;
+    color: whitesmoke;
+    font-weight: bold;
+}
+.ca-alert {
+    color: whitesmoke;
+    font-weight: bold;
+    border-radius: 4px;
+}
+.ca-alert-danger {
+    background-color: rgba(255, 0, 255, 0.3);
+    border: solid 2px rgba(255, 0, 255, 0.7);
+}
+.ca-alert-light {
+    background-color: rgb(52, 58, 64);
+    border: solid 2px rgb(73, 80, 87);
+}
+.ca-center {
+    text-align: center;
+}
+
+.ca-font-big {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
