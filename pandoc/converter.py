@@ -36,17 +36,23 @@ def convert_md_files(input, output):
             else:
                 copy_files(path, file, input, output)
 
+def copy_assets(output):
+    os.makedirs(os.path.join(output, "assets"), exist_ok=True)
+    for file in os.listdir("./assets"):
+        shutil.copy(os.path.join("./assets", file), os.path.join(output, "assets", file))
+
 #Pega os argumentos passados pelo terminal
 def arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", required=True)
-    parser.add_argument("-o", "--output", default="../dist")
+    parser.add_argument("-o", "--output", default="..\dist")
     return parser.parse_args()
 
 def main():
     args = arguments()
     os.makedirs(args.output, exist_ok=True)
     convert_md_files(args.input, args.output)
+    copy_assets(args.output)
 
 #python converter.py -i ""../docs" [-o ""../dist"]
 main()
