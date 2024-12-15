@@ -3,56 +3,54 @@ import os
 import argparse
 import shutil
 
-pandoc_exe = "pandoc.exe"
+def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arquivos .md para .html
+    relativePath = os.path.relpath(mdFilePath, inputPath) #Pega o caminho do arquivo md sem o caminho de entrada
+    outputPath = os.path.join(outputPath, relativePath) #Junta o caminho de saída com o caminho do arquivo md
+    os.makedirs(outputPath, exist_ok=True) #Cria a pasta de saída
+    mdFile = os.path.join(mdFilePath, mdFileName) #Junta o caminho do arquivo md com o nome do arquivo
+    htmlFile = os.path.join(outputPath, mdFileName.replace(".md", ".html")) #Junta o caminho de saída com o nome do arquivo .md substituindo por .html
+    templatePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template.html") #Pega o caminho absoluto do script, tira o nome do script e junta com o template.html
+    pandoc = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pandoc.exe") #Pega o caminho absoluto do script, tira o nome do script e junta com o pandoc.exe
+    subprocess.run([pandoc, mdFile, "-o", htmlFile, "--template", templatePath]) #Exexcuta o pandoc
 
-def exec_pandoc(md_file_path, md_file_name, input, output):
-    #Pega o caminho do arquivo md sem o caminho de entrada
-    relative_path = os.path.relpath(md_file_path, input)
-    #Junta o caminho de saída com o caminho do arquivo md
-    output = os.path.join(output, relative_path)
-    #Cria a pasta de saída
-    os.makedirs(output, exist_ok=True)
-    #Junta o caminho do arquivo md com o nome do arquivo
-    md_file = os.path.join(md_file_path, md_file_name)
-    #Junta o caminho de saída com o nome do arquivo .md substituindo por .html
-    html_file = os.path.join(output, md_file_name.replace(".md", ".html"))
-    subprocess.run([pandoc_exe, md_file, "-o", html_file, "--template", "template.html"])
+def copyFiles(inputFilePath, inputFileName, inputPath, outputPath): #Copia os arquivos que não são .md
+    relativePath = os.path.relpath(inputFilePath, inputPath) #Pega o caminho do arquivo sem o caminho de entrada
+    outputPath = os.path.join(outputPath, relativePath) #Junta o caminho de saída com o caminho do arquivo
+    os.makedirs(outputPath, exist_ok=True) #Cria a pasta de saída
+    inputFile = os.path.join(inputFilePath, inputFileName) #Junta o caminho do arquivo com o nome do arquivo
+    outputFile = os.path.join(outputPath, inputFileName) #Junta o caminho de saída com o nome do arquivo
+    shutil.copy(inputFile, outputFile) #Copia o arquivo
 
-def copy_files(file_path, file_name, input, output):
-    relative_path = os.path.relpath(file_path, input)
-    output = os.path.join(output, relative_path)
-    os.makedirs(output, exist_ok=True)
-    file = os.path.join(file_path, file_name)
-    output_file = os.path.join(output, file_name)
-    shutil.copy(file, output_file)
-
-def convert_md_files(input, output):
-    #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
-    for path, _, files in os.walk(input):
+def convertMdFiles(inputPath, outputPath): #Varre as pastas para converter os arquivos .md e copiar os outros arquivos
+    for path, _, files in os.walk(inputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
         for file in files:
             if file.endswith(".md"):
-                #Passa o caminho da pasta, o nome do arquivo, o caminho de entrada e o caminho de saída
-                exec_pandoc(path, file, input, output)
+                execPandoc(path, file, inputPath, outputPath) #Passa o caminho da pasta, o nome do arquivo, o caminho de entrada e o caminho de saída
             else:
-                copy_files(path, file, input, output)
+                copyFiles(path, file, inputPath, outputPath)
 
-def copy_assets(output):
-    os.makedirs(os.path.join(output, "assets"), exist_ok=True)
-    for file in os.listdir("./assets"):
-        shutil.copy(os.path.join("./assets", file), os.path.join(output, "assets", file))
+def copyAssets(outputPath):
+    os.makedirs(os.path.join(outputPath, "assets/assets-do-script"), exist_ok=True) #Cria a pasta assets/assets-do-script na pasta de saída
+    assetsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets") #Pega o caminho absoluto do script, tira o nome do script e junta com a pasta assets
+    for file in os.listdir(assetsDir):
+        shutil.copy(os.path.join(assetsDir, file), os.path.join(outputPath, "assets/assets-do-script", file)) #Copia os arquivos da pasta assets para a pasta assets/assets-do-script na pasta de saída
 
-#Pega os argumentos passados pelo terminal
-def arguments():
+def arguments(): #Pega os argumentos passados pelo terminal
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", required=True)
-    parser.add_argument("-o", "--output", default="..\dist")
+    parser.add_argument("-o", "--output", default="dist")
     return parser.parse_args()
 
 def main():
     args = arguments()
-    os.makedirs(args.output, exist_ok=True)
-    convert_md_files(args.input, args.output)
-    copy_assets(args.output)
+    inputPath = os.path.abspath(args.input) #Caminho absoluto da pasta de entrada
+    outputPath = os.path.join(os.path.dirname(args.input), args.output) #Pega o caminho em que a pasta de entrada está e junta com a pasta de saída
+    os.makedirs(outputPath, exist_ok=True) #Cria a pasta de saída
+    convertMdFiles(inputPath, outputPath)
+    copyAssets(outputPath)
 
-#python converter.py -i ""../docs" [-o ""../dist"]
+#python converter.py -i "../docs"
+#Caminho absoluto: python "D:/Trabalho Web/Projeto/pandoc/converter.py" -i "D:/Trabalho Web/Projeto/src"
+#Na pasta do pandoc: python converter.py -i "D:/Trabalho Web/Projeto/src"
+#Na pasta do pandoc: converter.py -i "../docs"
 main()
