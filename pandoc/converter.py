@@ -3,6 +3,14 @@ import os
 import argparse
 import shutil
 
+def updateWorkDir(htmlFile): # Atualiza o {workdir} para o caminho relativo da pasta assets/assets-do-script
+    workDir = os.path.relpath("../dist/assets/assets-do-script", os.path.dirname(htmlFile)) # Calcula o caminho relativo do arquivo html para a pasta assets/assets-do-script
+    with open(htmlFile, 'r', encoding='utf-8') as file:
+        text = file.read() # Pega o conteúdo do arquivo html
+    text = text.replace("{workdir}assets", workDir) # Substitui o {workdir}assets pelo caminho relativo calculado
+    with open(htmlFile, 'w', encoding='utf-8') as file:
+        file.write(text) # Escreve o conteúdo no arquivo html, mas com a alteração
+
 def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arquivos .md para .html
     relativePath = os.path.relpath(mdFilePath, inputPath) #Pega o caminho do arquivo md sem o caminho de entrada
     outputPath = os.path.join(outputPath, relativePath) #Junta o caminho de saída com o caminho do arquivo md
@@ -12,6 +20,7 @@ def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arqu
     templatePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template.html") #Pega o caminho absoluto do script, tira o nome do script e junta com o template.html
     pandoc = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pandoc.exe") #Pega o caminho absoluto do script, tira o nome do script e junta com o pandoc.exe
     subprocess.run([pandoc, mdFile, "-o", htmlFile, "--template", templatePath]) #Exexcuta o pandoc
+    updateWorkDir(htmlFile) # Atualiza o {workdir}
 
 def copyFiles(inputFilePath, inputFileName, inputPath, outputPath): #Copia os arquivos que não são .md
     relativePath = os.path.relpath(inputFilePath, inputPath) #Pega o caminho do arquivo sem o caminho de entrada
