@@ -2,6 +2,32 @@ import subprocess
 import os
 import argparse
 import shutil
+import re
+
+def replaceMdToHtml(htmlFile): # Substitui .md por .html
+    with open(htmlFile, 'r', encoding='utf-8') as file:
+        text = file.read() # Pega o conteúdo do arquivo html
+    text = text.replace(".md", ".html") # Substitui .md por .html
+    with open(htmlFile, 'w', encoding='utf-8') as file:
+        file.write(text) # Escreve o conteúdo no arquivo html, mas com a alteração
+
+#pode ter o header e o footer então precisa ser uma lista
+def updateInclude(htmlFile): # Substitui o !!!__ INCLUDE “nome-do-arquivo” __!!! pelo conteúdo do arquivo
+    with open(htmlFile, 'r', encoding='utf-8') as file:
+        text = file.read() # Pega o conteúdo do arquivo html
+    regex = r'!!!__ INCLUDE “([^”]+)” __!!!' # Regex para encontrar o INCLUDE e pegar o nome do arquivo
+    results = re.findall(regex, text) # Procura o INCLUDE no conteúdo do arquivo
+    for result in results:
+        resultFile = os.path.join("../dist/templates", result) # Junta o caminho da pasta de templates com o nome do arquivo
+        with open(resultFile, 'r', encoding='utf-8') as file:
+            otherText = file.read() # Pega o conteúdo do arquivo do template
+        regex = r'<main[^>]*>(.*?)</main>' # Regex para pegar o conteúdo da tag main
+        otherResult = re.search(regex, otherText, re.DOTALL) # Procura a tag main no conteúdo do arquivo do template
+        if otherResult:
+            otherResult = otherResult.group(1) # Pega o conteúdo da tag main
+            text = text.replace("!!!__ INCLUDE “" + result + "” __!!!", otherResult) # Substitui o INCLUDE pelo conteúdo da tag main
+            with open(htmlFile, 'w', encoding='utf-8') as file:
+                file.write(text) # Escreve o conteúdo no arquivo html, mas com a alteração
 
 def updateWorkDir(htmlFile): # Atualiza o {workdir} para o caminho relativo da pasta assets/assets-do-script
     workDir = os.path.relpath("../dist/assets/assets-do-script", os.path.dirname(htmlFile)) # Calcula o caminho relativo do arquivo html para a pasta assets/assets-do-script
@@ -10,6 +36,15 @@ def updateWorkDir(htmlFile): # Atualiza o {workdir} para o caminho relativo da p
     text = text.replace("{workdir}assets", workDir) # Substitui o {workdir}assets pelo caminho relativo calculado
     with open(htmlFile, 'w', encoding='utf-8') as file:
         file.write(text) # Escreve o conteúdo no arquivo html, mas com a alteração
+
+def adjustments(outputPath): # Faz ajustes nos arquivos .html
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if file.endswith(".html"):
+                file = os.path.join(path, file) #Junta o caminho da pasta com o nome do arquivo
+                replaceMdToHtml(file) # Substitui .md por .html
+                updateInclude(file) # Substitui o INCLUDE pelo conteúdo do arquivo
+                updateWorkDir(file) # Atualiza o {workdir}
 
 def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arquivos .md para .html
     relativePath = os.path.relpath(mdFilePath, inputPath) #Pega o caminho do arquivo md sem o caminho de entrada
@@ -20,7 +55,6 @@ def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arqu
     templatePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template.html") #Pega o caminho absoluto do script, tira o nome do script e junta com o template.html
     pandoc = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pandoc.exe") #Pega o caminho absoluto do script, tira o nome do script e junta com o pandoc.exe
     subprocess.run([pandoc, mdFile, "-o", htmlFile, "--template", templatePath]) #Exexcuta o pandoc
-    updateWorkDir(htmlFile) # Atualiza o {workdir}
 
 def copyFiles(inputFilePath, inputFileName, inputPath, outputPath): #Copia os arquivos que não são .md
     relativePath = os.path.relpath(inputFilePath, inputPath) #Pega o caminho do arquivo sem o caminho de entrada
@@ -57,6 +91,7 @@ def main():
     os.makedirs(outputPath, exist_ok=True) #Cria a pasta de saída
     convertMdFiles(inputPath, outputPath)
     copyAssets(outputPath)
+    adjustments(outputPath)
 
 #python converter.py -i "../docs"
 #Caminho absoluto: python "D:/Trabalho Web/Projeto/pandoc/converter.py" -i "D:/Trabalho Web/Projeto/src"
