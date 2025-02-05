@@ -12,13 +12,13 @@ def replaceMdToHtml(htmlFile): # Substitui .md por .html
         file.write(text) # Escreve o conteúdo no arquivo html, mas com a alteração
 
 #pode ter o header e o footer então precisa ser uma lista
-def updateInclude(htmlFile): # Substitui o !!!__ INCLUDE “nome-do-arquivo” __!!! pelo conteúdo do arquivo
+def updateInclude(htmlFile, outputPath): # Substitui o !!!__ INCLUDE “nome-do-arquivo” __!!! pelo conteúdo do arquivo
     with open(htmlFile, 'r', encoding='utf-8') as file:
         text = file.read() # Pega o conteúdo do arquivo html
     regex = r'!!!__ INCLUDE “([^”]+)” __!!!' # Regex para encontrar o INCLUDE e pegar o nome do arquivo
     results = re.findall(regex, text) # Procura o INCLUDE no conteúdo do arquivo
     for result in results:
-        resultFile = os.path.join("../dist/templates", result) # Junta o caminho da pasta de templates com o nome do arquivo
+        resultFile = os.path.join(f"{outputPath}/templates", result) # Junta o caminho da pasta de templates com o nome do arquivo
         with open(resultFile, 'r', encoding='utf-8') as file:
             otherText = file.read() # Pega o conteúdo do arquivo do template
         regex = r'<main[^>]*>(.*?)</main>' # Regex para pegar o conteúdo da tag main
@@ -29,8 +29,8 @@ def updateInclude(htmlFile): # Substitui o !!!__ INCLUDE “nome-do-arquivo” _
             with open(htmlFile, 'w', encoding='utf-8') as file:
                 file.write(text) # Escreve o conteúdo no arquivo html, mas com a alteração
 
-def updateWorkDir(htmlFile): # Atualiza o {workdir} para o caminho relativo da pasta assets/assets-do-script
-    workDir = os.path.relpath("../dist/assets/assets-do-script", os.path.dirname(htmlFile)) # Calcula o caminho relativo do arquivo html para a pasta assets/assets-do-script
+def updateWorkDir(htmlFile, outputPath): # Atualiza o {workdir} para o caminho relativo da pasta assets/assets-do-script
+    workDir = os.path.relpath(f"{outputPath}/assets/assets-do-script", os.path.dirname(htmlFile)) # Calcula o caminho relativo do arquivo html para a pasta assets/assets-do-script
     with open(htmlFile, 'r', encoding='utf-8') as file:
         text = file.read() # Pega o conteúdo do arquivo html
     text = text.replace("{workdir}assets", workDir) # Substitui o {workdir}assets pelo caminho relativo calculado
@@ -43,8 +43,8 @@ def adjustments(outputPath): # Faz ajustes nos arquivos .html
             if file.endswith(".html"):
                 file = os.path.join(path, file) #Junta o caminho da pasta com o nome do arquivo
                 replaceMdToHtml(file) # Substitui .md por .html
-                updateInclude(file) # Substitui o INCLUDE pelo conteúdo do arquivo
-                updateWorkDir(file) # Atualiza o {workdir}
+                updateInclude(file, outputPath) # Substitui o INCLUDE pelo conteúdo do arquivo
+                updateWorkDir(file, outputPath) # Atualiza o {workdir}
 
 def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arquivos .md para .html
     relativePath = os.path.relpath(mdFilePath, inputPath) #Pega o caminho do arquivo md sem o caminho de entrada
