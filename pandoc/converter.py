@@ -4,6 +4,27 @@ import argparse
 import shutil
 import re
 
+def replaceHrInMdFiles(mdFile): # Substitui -- por <hr> no arquivo .md
+    with open(mdFile, 'r', encoding='utf-8') as f:
+        text = f.read() # Pega o conteúdo do arquivo
+    regex = r'--(.+)$' # Regex para encontrar --
+    results = re.findall(regex, text, re.MULTILINE) # Procura -- no conteúdo do arquivo e retorna uma lista de ocorrências
+    for result in results:
+        regex = r'([a-zA-Z0-9]+:[a-zA-Z0-9]+)' # Regex para pegar informações no formato chave:valor
+        otherResults = re.findall(regex, result) # Procura informações no formato chave:valor para cada ocorrência de --
+        classhr = []
+        classhr.append("ca-hr") # Adiciona a classe ca-hr que é padrão para todos os hr
+        for r in otherResults:
+            r = r.split(":") # Separa a chave e o valor
+            if r[0] == "h":
+                classhr.append(f"ca-{r[1]}") # Se a chave for h, adiciona a classe ca-valor
+            else:
+                classhr.append(f"m{r[0]}-{r[1]}") # Para qualquer outra chave, adiciona a classe mchave-valor
+        classhr = " ".join(classhr) # Junta todas as classes com um espaço entre elas
+        text = text.replace(f"--{result}", f'<hr class="{classhr}">')
+    with open(mdFile, 'w', encoding='utf-8') as f:
+        f.write(text) # Escreve o conteúdo no arquivo, mas com as alterações
+                
 def replaceMdToHtml(htmlFile): # Substitui .md por .html
     with open(htmlFile, 'r', encoding='utf-8') as file:
         text = file.read() # Pega o conteúdo do arquivo html
@@ -11,7 +32,6 @@ def replaceMdToHtml(htmlFile): # Substitui .md por .html
     with open(htmlFile, 'w', encoding='utf-8') as file:
         file.write(text) # Escreve o conteúdo no arquivo html, mas com a alteração
 
-#pode ter o header e o footer então precisa ser uma lista
 def updateInclude(htmlFile, outputPath): # Substitui o !!!__ INCLUDE “nome-do-arquivo” __!!! pelo conteúdo do arquivo
     with open(htmlFile, 'r', encoding='utf-8') as file:
         text = file.read() # Pega o conteúdo do arquivo html
@@ -54,7 +74,12 @@ def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arqu
     htmlFile = os.path.join(outputPath, mdFileName.replace(".md", ".html")) #Junta o caminho de saída com o nome do arquivo .md substituindo por .html
     templatePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template.html") #Pega o caminho absoluto do script, tira o nome do script e junta com o template.html
     pandoc = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pandoc.exe") #Pega o caminho absoluto do script, tira o nome do script e junta com o pandoc.exe
+    with open(mdFile, 'r', encoding='utf-8') as file:
+        text = file.read() #Pega o conteúdo do arquivo .md
+    replaceHrInMdFiles(mdFile) #Substitui -- por <hr>, mas ele altera o arquivo de entrada, então salva o texto original, faz as alterações, converte o md e depois volta para o texto original
     subprocess.run([pandoc, mdFile, "-o", htmlFile, "--template", templatePath]) #Exexcuta o pandoc
+    with open(mdFile, 'w', encoding='utf-8') as file:
+        file.write(text) #Volta para o texto original
 
 def copyFiles(inputFilePath, inputFileName, inputPath, outputPath): #Copia os arquivos que não são .md
     relativePath = os.path.relpath(inputFilePath, inputPath) #Pega o caminho do arquivo sem o caminho de entrada
