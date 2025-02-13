@@ -3,6 +3,56 @@ import os
 import argparse
 import shutil
 import re
+import cssmin
+import jsmin
+import htmlmin
+
+def minifyHtml(outputPath): # Minifica os arquivos .html
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if file.endswith(".html"):
+                file = os.path.join(path, file) #Junta o caminho da pasta com o nome do arquivo
+                with open(file, 'r', encoding='utf-8') as f:
+                    text = f.read() #Pega o conteúdo do arquivo .html
+                text = htmlmin.minify(text) #Minifica o conteúdo do arquivo .html
+                with open(file, 'w', encoding='utf-8') as f:
+                    f.write(text) #Escreve o conteúdo minificado no arquivo .html
+
+def minifyCssJs(outputPath): # Minifica os arquivos .css e .js
+    # Essa parte minifica os arquivos .css e .js
+    cssjsFiles = {}
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if file.endswith(".css"):
+                cssjsFiles[file] = file.replace(".css", ".min.css") #Adiciona o nome do arquivo .css e .min.css no dicionário
+                file = os.path.join(path, file) #Junta o caminho da pasta com o nome do arquivo
+                with open(file, 'r', encoding='utf-8') as f:
+                    text = f.read() #Pega o conteúdo do arquivo .css
+                text = cssmin.cssmin(text) #Minifica o conteúdo do arquivo .css
+                with open(file, 'w', encoding='utf-8') as f:
+                    f.write(text) #Escreve o conteúdo minificado no arquivo .css
+                os.rename(file, file.replace(".css", ".min.css")) #Renomeia o arquivo .css para .min.css
+            elif file.endswith(".js"):
+                cssjsFiles[file] = file.replace(".js", ".min.js") #Adiciona o nome do arquivo .js e .min.js no dicionário
+                file = os.path.join(path, file) #Junta o caminho da pasta com o nome do arquivo
+                with open(file, 'r', encoding='utf-8') as f:
+                    text = f.read() #Pega o conteúdo do arquivo .js
+                text = jsmin.jsmin(text) #Minifica o conteúdo do arquivo .js
+                with open(file, 'w', encoding='utf-8') as f:
+                    f.write(text) #Escreve o conteúdo minificado no arquivo .js
+                os.rename(file, file.replace(".js", ".min.js")) #Renomeia o arquivo .js para .min.js
+
+    # Essa parte substitui os arquivos .css pelos .min.css nos arquivos .html
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if file.endswith(".html"):
+                file = os.path.join(path, file) #Junta o caminho da pasta com o nome do arquivo
+                with open(file, 'r', encoding='utf-8') as f:
+                    text = f.read() #Pega o conteúdo do arquivo .html
+                for key in cssjsFiles:
+                    text = text.replace(key, cssjsFiles[key]) #Substitui o nome do arquivo .css pelo nome do arquivo .min.css
+                with open(file, 'w', encoding='utf-8') as f:
+                    f.write(text) #Escreve o conteúdo no arquivo .html, mas com as alterações
 
 def replaceHrInMdFiles(mdFile): # Substitui -- por <hr> no arquivo .md
     with open(mdFile, 'r', encoding='utf-8') as f:
@@ -65,6 +115,7 @@ def adjustments(outputPath): # Faz ajustes nos arquivos .html
                 replaceMdToHtml(file) # Substitui .md por .html
                 updateInclude(file, outputPath) # Substitui o INCLUDE pelo conteúdo do arquivo
                 updateWorkDir(file, outputPath) # Atualiza o {workdir}
+                replaceMdToHtml(file) # Substitui .md por .html
 
 def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arquivos .md para .html
     relativePath = os.path.relpath(mdFilePath, inputPath) #Pega o caminho do arquivo md sem o caminho de entrada
@@ -117,6 +168,8 @@ def main():
     convertMdFiles(inputPath, outputPath)
     copyAssets(outputPath)
     adjustments(outputPath)
+    minifyCssJs(outputPath)
+    minifyHtml(outputPath)
 
 #python converter.py -i "../docs"
 #Caminho absoluto: python "D:/Trabalho Web/Projeto/pandoc/converter.py" -i "D:/Trabalho Web/Projeto/src"
