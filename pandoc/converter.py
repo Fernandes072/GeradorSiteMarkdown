@@ -8,48 +8,36 @@ import jsmin
 import htmlmin
 from PIL import Image
 
-def removeMetadata(outputPath): # Remove os metadados da imagem
+def removeMetadata(image, outputPath): # Remove os metadados da imagem
     for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
         for file in files:
-            if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".jpeg") or file.endswith(".webp"):
+             if file == image:
                 file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
                 image = Image.open(file) # Abre a imagem original
                 data = list(image.getdata()) # Pega os dados da imagem
                 newImage = Image.new(image.mode, image.size) # Cria uma nova imagem com o mesmo modo e tamanho da imagem original
                 newImage.putdata(data) # Coloca os dados na nova imagem
+                ext = file.split('.')[-1] # Pega a extensão da imagem
+                file = file.replace("." + ext, '-no-exif.' + ext) # Adiciona no-exif no nome da imagem
                 newImage.save(file) # Salva a imagem na pasta
+                return None
 
-def convertToWebp(outputPath): # Converte as imagens para .webp
-    # Essa parte converte as imagens para .webp
-    images = {}
+def convertToWebp(image, outputPath): # Converte a imagem para .webp
     for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
             for file in files:
-                if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".jpeg"):
+                if file == image:
                     ext = file.split('.')[-1] # Pega a extensão da imagem original
                     file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
                     image = Image.open(file) # Abre a imagem original
                     image.save(file.replace(ext, 'webp'), "WEBP", quality=90) # Salva a imagem em .webp
                     fileSize = os.path.getsize(file) # Pega o tamanho do arquivo original
                     webpSize = os.path.getsize(file.replace(ext, 'webp')) # Pega o tamanho do arquivo .webp
-                    if (webpSize < fileSize):
-                        images[os.path.basename(file)] = os.path.basename(file).replace(ext, 'webp') # Adiciona o nome da imagem original e da imagem .webp no dicionário
-                        os.remove(file) # Apaga a imagem original
-                    else:
+                    if (webpSize > fileSize):
                         os.remove(file.replace(ext, 'webp')) # Apaga a imagem webp
+                        return False
+                    return True
 
-    # Essa parte substitui as imagens por .webp nos arquivos .html e .js
-    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
-        for file in files:
-            if file.endswith(".html") or file.endswith(".js"):
-                file = os.path.join(path, file) #Junta o caminho da pasta com o nome do arquivo
-                with open(file, 'r', encoding='utf-8') as f:
-                    text = f.read() #Pega o conteúdo do arquivo .html
-                for key in images:
-                    text = text.replace(key, images[key]) #Substitui o nome da imagem original pelo nome da imagem .webp
-                with open(file, 'w', encoding='utf-8') as f:
-                    f.write(text) #Escreve o conteúdo no arquivo .html, mas com as alterações
-
-def imageOptimizations(mdFile):
+def imageOptimizations(mdFile, outputPath): # Faz otimizações nas imagens
     with open(mdFile, 'r', encoding='utf-8') as f:
         text = f.read() # Pega o conteúdo do arquivo
     regex = r'!\[.*?\](.+)' # Regex para encontrar ![] e pegar o que vem depois
@@ -58,18 +46,25 @@ def imageOptimizations(mdFile):
         result = result.split("@") # (imagem)@[ajustes] -> Separa o nome da imagem e os ajustes
         if (len(result) == 2): # Se tiver menos de 2 elementos não tem ajustes e se tiver mais digitou errado
             complements = "{" # São alguns atributos que podem ser adicionados na tag img, como loading, class, id
+            newImage = result[0] # É o (imagem) final, que vai sofrer as alterações no nome e será substituído no texto
             adjustments = result[1].replace("[", "").replace("]", "").split(" + ") # Tira os colchetes e separa os ajustes
             for adjustment in adjustments:
                 if (adjustment == "converter-imagem"):
-                    1==1 #converter para webp
-                    #print(result[0].split(" ")[0].replace("(", "")) # Pega o nome da imagem
+                    image = os.path.basename(newImage.split(" ")[0].replace("(", "").replace(")", "")) # Pega o nome da imagem
+                    hasConverted = convertToWebp(image, outputPath) # Converte a imagem para .webp
+                    if hasConverted:
+                        ext = image.split('.')[-1] # Pega a extensão da imagem original
+                        newImage = newImage.replace(ext, 'webp') # Substitui a extensão da imagem original por .webp
                 elif (adjustment == "remover-exif"):
-                    1==1 #remover metadados
+                    image = os.path.basename(newImage.split(" ")[0].replace("(", "").replace(")", "")) # Pega o nome da imagem
+                    removeMetadata(image, outputPath) # Remove os metadados da imagem
+                    ext = newImage.split('.')[-1] # Pega a extensão da imagem
+                    newImage = newImage.replace("." + ext, '-no-exif.' + ext) # Adiciona no-exif no nome da imagem
                 elif (adjustment == "lazy-loading"):
                     complements += ' loading="lazy"'
-            text = text.replace(result[0] + "@" + result[1], result[0] + complements + "}") # Substitui (imagem)@[ajustes] por (imagem){complementos}
-            with open(mdFile, 'w', encoding='utf-8') as f:
-                f.write(text) # Escreve o conteúdo no arquivo, mas com as alterações
+            text = text.replace(result[0] + "@" + result[1], newImage + complements + "}") # Substitui (imagem)@[ajustes] por (imagem){complementos}
+    with open(mdFile, 'w', encoding='utf-8') as f:
+        f.write(text) # Escreve o conteúdo no arquivo, mas com as alterações
 
 def minifyHtml(outputPath): # Minifica os arquivos .html
     for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
@@ -192,26 +187,27 @@ def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arqu
     with open(mdFile, 'r', encoding='utf-8') as file:
         text = file.read() #Pega o conteúdo do arquivo .md
     replaceHrInMdFiles(mdFile) #Substitui -- por <hr>, mas ele altera o arquivo de entrada, então salva o texto original, faz as alterações, converte o md e depois volta para o texto original
-    imageOptimizations(mdFile) #Faz as otimizações nas imagens
+    imageOptimizations(mdFile, outputPath) #Faz as otimizações nas imagens
     subprocess.run([pandoc, mdFile, "-o", htmlFile, "--template", templatePath]) #Exexcuta o pandoc
     with open(mdFile, 'w', encoding='utf-8') as file:
         file.write(text) #Volta para o texto original
 
-def copyFiles(inputFilePath, inputFileName, inputPath, outputPath): #Copia os arquivos que não são .md
-    relativePath = os.path.relpath(inputFilePath, inputPath) #Pega o caminho do arquivo sem o caminho de entrada
-    outputPath = os.path.join(outputPath, relativePath) #Junta o caminho de saída com o caminho do arquivo
-    os.makedirs(outputPath, exist_ok=True) #Cria a pasta de saída
-    inputFile = os.path.join(inputFilePath, inputFileName) #Junta o caminho do arquivo com o nome do arquivo
-    outputFile = os.path.join(outputPath, inputFileName) #Junta o caminho de saída com o nome do arquivo
-    shutil.copy(inputFile, outputFile) #Copia o arquivo
+def copyFiles(inputPath, outputPath): #Copia os arquivos que não são .md
+    for path, _, files in os.walk(inputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if not file.endswith(".md"):
+                relativePath = os.path.relpath(path, inputPath) #Pega o caminho do arquivo sem o caminho de entrada
+                outPath = os.path.join(outputPath, relativePath) #Junta o caminho de saída com o caminho do arquivo
+                os.makedirs(outPath, exist_ok=True) #Cria a pasta de saída
+                inputFile = os.path.join(path, file) #Junta o caminho do arquivo com o nome do arquivo
+                outputFile = os.path.join(outPath, file) #Junta o caminho de saída com o nome do arquivo
+                shutil.copy(inputFile, outputFile) #Copia o arquivo
 
 def convertMdFiles(inputPath, outputPath): #Varre as pastas para converter os arquivos .md e copiar os outros arquivos
     for path, _, files in os.walk(inputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
         for file in files:
             if file.endswith(".md"):
                 execPandoc(path, file, inputPath, outputPath) #Passa o caminho da pasta, o nome do arquivo, o caminho de entrada e o caminho de saída
-            else:
-                copyFiles(path, file, inputPath, outputPath)
 
 def copyAssets(outputPath):
     os.makedirs(os.path.join(outputPath, "assets/assets-do-script"), exist_ok=True) #Cria a pasta assets/assets-do-script na pasta de saída
@@ -230,6 +226,7 @@ def main():
     inputPath = os.path.abspath(args.input) #Caminho absoluto da pasta de entrada
     outputPath = os.path.join(os.path.dirname(args.input), args.output) #Pega o caminho em que a pasta de entrada está e junta com a pasta de saída
     os.makedirs(outputPath, exist_ok=True) #Cria a pasta de saída
+    copyFiles(inputPath, outputPath)
     convertMdFiles(inputPath, outputPath)
     copyAssets(outputPath)
     adjustments(outputPath)
