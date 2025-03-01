@@ -3,4 +3,4 @@
     descompacte o arquivo
     copie o pandoc.exe para a pasta pandoc
 
-- pip install cssmin jsmin htmlmin
+- pip install cssmin jsmin htmlmin pillow

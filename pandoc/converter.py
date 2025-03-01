@@ -6,6 +6,70 @@ import re
 import cssmin
 import jsmin
 import htmlmin
+from PIL import Image
+
+def removeMetadata(outputPath): # Remove os metadados da imagem
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".jpeg") or file.endswith(".webp"):
+                file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
+                image = Image.open(file) # Abre a imagem original
+                data = list(image.getdata()) # Pega os dados da imagem
+                newImage = Image.new(image.mode, image.size) # Cria uma nova imagem com o mesmo modo e tamanho da imagem original
+                newImage.putdata(data) # Coloca os dados na nova imagem
+                newImage.save(file) # Salva a imagem na pasta
+
+def convertToWebp(outputPath): # Converte as imagens para .webp
+    # Essa parte converte as imagens para .webp
+    images = {}
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+            for file in files:
+                if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".jpeg"):
+                    ext = file.split('.')[-1] # Pega a extensão da imagem original
+                    file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
+                    image = Image.open(file) # Abre a imagem original
+                    image.save(file.replace(ext, 'webp'), "WEBP", quality=90) # Salva a imagem em .webp
+                    fileSize = os.path.getsize(file) # Pega o tamanho do arquivo original
+                    webpSize = os.path.getsize(file.replace(ext, 'webp')) # Pega o tamanho do arquivo .webp
+                    if (webpSize < fileSize):
+                        images[os.path.basename(file)] = os.path.basename(file).replace(ext, 'webp') # Adiciona o nome da imagem original e da imagem .webp no dicionário
+                        os.remove(file) # Apaga a imagem original
+                    else:
+                        os.remove(file.replace(ext, 'webp')) # Apaga a imagem webp
+
+    # Essa parte substitui as imagens por .webp nos arquivos .html e .js
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if file.endswith(".html") or file.endswith(".js"):
+                file = os.path.join(path, file) #Junta o caminho da pasta com o nome do arquivo
+                with open(file, 'r', encoding='utf-8') as f:
+                    text = f.read() #Pega o conteúdo do arquivo .html
+                for key in images:
+                    text = text.replace(key, images[key]) #Substitui o nome da imagem original pelo nome da imagem .webp
+                with open(file, 'w', encoding='utf-8') as f:
+                    f.write(text) #Escreve o conteúdo no arquivo .html, mas com as alterações
+
+def imageOptimizations(mdFile):
+    with open(mdFile, 'r', encoding='utf-8') as f:
+        text = f.read() # Pega o conteúdo do arquivo
+    regex = r'!\[.*?\](.+)' # Regex para encontrar ![] e pegar o que vem depois
+    results = re.findall(regex, text, re.MULTILINE) # Procura ![] no conteúdo do arquivo e retorna uma lista de ocorrências
+    for result in results:
+        result = result.split("@") # (imagem)@[ajustes] -> Separa o nome da imagem e os ajustes
+        if (len(result) == 2): # Se tiver menos de 2 elementos não tem ajustes e se tiver mais digitou errado
+            complements = "{" # São alguns atributos que podem ser adicionados na tag img, como loading, class, id
+            adjustments = result[1].replace("[", "").replace("]", "").split(" + ") # Tira os colchetes e separa os ajustes
+            for adjustment in adjustments:
+                if (adjustment == "converter-imagem"):
+                    1==1 #converter para webp
+                    #print(result[0].split(" ")[0].replace("(", "")) # Pega o nome da imagem
+                elif (adjustment == "remover-exif"):
+                    1==1 #remover metadados
+                elif (adjustment == "lazy-loading"):
+                    complements += ' loading="lazy"'
+            text = text.replace(result[0] + "@" + result[1], result[0] + complements + "}") # Substitui (imagem)@[ajustes] por (imagem){complementos}
+            with open(mdFile, 'w', encoding='utf-8') as f:
+                f.write(text) # Escreve o conteúdo no arquivo, mas com as alterações
 
 def minifyHtml(outputPath): # Minifica os arquivos .html
     for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
@@ -128,6 +192,7 @@ def execPandoc(mdFilePath, mdFileName, inputPath, outputPath): #Converte os arqu
     with open(mdFile, 'r', encoding='utf-8') as file:
         text = file.read() #Pega o conteúdo do arquivo .md
     replaceHrInMdFiles(mdFile) #Substitui -- por <hr>, mas ele altera o arquivo de entrada, então salva o texto original, faz as alterações, converte o md e depois volta para o texto original
+    imageOptimizations(mdFile) #Faz as otimizações nas imagens
     subprocess.run([pandoc, mdFile, "-o", htmlFile, "--template", templatePath]) #Exexcuta o pandoc
     with open(mdFile, 'w', encoding='utf-8') as file:
         file.write(text) #Volta para o texto original
