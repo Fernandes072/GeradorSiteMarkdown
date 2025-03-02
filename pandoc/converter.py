@@ -8,19 +8,39 @@ import jsmin
 import htmlmin
 from PIL import Image
 
+def dpiImage(image, outputPath, dpi): # Ajusta o dpi da imagem
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if file == image:
+                file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
+                image = Image.open(file) # Abre a imagem original
+                ext = file.split('.')[-1] # Pega a extensão da imagem
+                image.save(file.replace("." + ext, f'-{dpi}.' + ext), dpi=(dpi, dpi)) # Adiciona o dpi no nome da imagem e salva a imagem
+                return file
+
+def resizeImage(image, outputPath, dimensions): # Redimensiona a imagem
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+        for file in files:
+            if file == image:
+                file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
+                image = Image.open(file) # Abre a imagem original
+                image = image.resize((int(dimensions[0]), int(dimensions[1]))) # Redimensiona a imagem
+                ext = file.split('.')[-1] # Pega a extensão da imagem
+                image.save(file.replace("." + ext, f'-{dimensions[0]}x{dimensions[1]}.' + ext)) # Adiciona as dimensões no nome da imagem e salva a imagem
+                return file
+
 def removeMetadata(image, outputPath): # Remove os metadados da imagem
     for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
         for file in files:
-             if file == image:
+            if file == image:
                 file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
                 image = Image.open(file) # Abre a imagem original
                 data = list(image.getdata()) # Pega os dados da imagem
                 newImage = Image.new(image.mode, image.size) # Cria uma nova imagem com o mesmo modo e tamanho da imagem original
                 newImage.putdata(data) # Coloca os dados na nova imagem
                 ext = file.split('.')[-1] # Pega a extensão da imagem
-                file = file.replace("." + ext, '-no-exif.' + ext) # Adiciona no-exif no nome da imagem
-                newImage.save(file) # Salva a imagem na pasta
-                return None
+                newImage.save(file.replace("." + ext, '-no-exif.' + ext)) # Adiciona no-exif no nome da imagem e salva a imagem
+                return file
 
 def convertToWebp(image, outputPath): # Converte a imagem para .webp
     for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
@@ -35,7 +55,7 @@ def convertToWebp(image, outputPath): # Converte a imagem para .webp
                     if (webpSize > fileSize):
                         os.remove(file.replace(ext, 'webp')) # Apaga a imagem webp
                         return False
-                    return True
+                    return True, file
 
 def imageOptimizations(mdFile, outputPath): # Faz otimizações nas imagens
     with open(mdFile, 'r', encoding='utf-8') as f:
@@ -43,6 +63,7 @@ def imageOptimizations(mdFile, outputPath): # Faz otimizações nas imagens
     regex = r'!\[.*?\](.+)' # Regex para encontrar ![] e pegar o que vem depois
     results = re.findall(regex, text, re.MULTILINE) # Procura ![] no conteúdo do arquivo e retorna uma lista de ocorrências
     for result in results:
+        removeImage = False # Na primeira modificação a imagem fonte é mantida, mas nas próximas é removida
         result = result.split("@") # (imagem)@[ajustes] -> Separa o nome da imagem e os ajustes
         if (len(result) == 2): # Se tiver menos de 2 elementos não tem ajustes e se tiver mais digitou errado
             complements = "{" # São alguns atributos que podem ser adicionados na tag img, como loading, class, id
@@ -51,16 +72,40 @@ def imageOptimizations(mdFile, outputPath): # Faz otimizações nas imagens
             for adjustment in adjustments:
                 if (adjustment == "converter-imagem"):
                     image = os.path.basename(newImage.split(" ")[0].replace("(", "").replace(")", "")) # Pega o nome da imagem
-                    hasConverted = convertToWebp(image, outputPath) # Converte a imagem para .webp
+                    hasConverted, pathImage = convertToWebp(image, outputPath) # Converte a imagem para .webp
                     if hasConverted:
+                        if removeImage:
+                            os.remove(pathImage) # Apaga a imagem antiga
                         ext = image.split('.')[-1] # Pega a extensão da imagem original
                         newImage = newImage.replace(ext, 'webp') # Substitui a extensão da imagem original por .webp
+                        removeImage = True
                 elif (adjustment == "remover-exif"):
                     image = os.path.basename(newImage.split(" ")[0].replace("(", "").replace(")", "")) # Pega o nome da imagem
-                    removeMetadata(image, outputPath) # Remove os metadados da imagem
+                    pathImage = removeMetadata(image, outputPath) # Remove os metadados da imagem
+                    if removeImage:
+                        os.remove(pathImage) # Apaga a imagem antiga
                     ext = newImage.split('.')[-1] # Pega a extensão da imagem
                     newImage = newImage.replace("." + ext, '-no-exif.' + ext) # Adiciona no-exif no nome da imagem
-                elif (adjustment == "lazy-loading"):
+                    removeImage = True
+                elif (adjustment.split("=")[0] == "resolucao"):
+                    image = os.path.basename(newImage.split(" ")[0].replace("(", "").replace(")", "")) # Pega o nome da imagem
+                    dimensions = adjustment.split("=")[1].split("x") # Pega as dimensões da imagem
+                    pathImage = resizeImage(image, outputPath, dimensions) # Redimensiona a imagem
+                    if removeImage:
+                        os.remove(pathImage) # Apaga a imagem antiga
+                    ext = newImage.split('.')[-1] # Pega a extensão da imagem
+                    newImage = newImage.replace("." + ext, f'-{dimensions[0]}x{dimensions[1]}.' + ext) # Adiciona a resolução no nome da imagem
+                    removeImage = True
+                elif (adjustment.split("=")[0] == "dpi"):
+                    image = os.path.basename(newImage.split(" ")[0].replace("(", "").replace(")", "")) # Pega o nome da imagem
+                    dpi = adjustment.split("=")[1] # Pega o dpi da imagem
+                    pathImage = dpiImage(image, outputPath, dpi) # Ajusta o dpi a imagem
+                    if removeImage:
+                        os.remove(pathImage) # Apaga a imagem antiga
+                    ext = newImage.split('.')[-1] # Pega a extensão da imagem
+                    newImage = newImage.replace("." + ext, f'-{dpi}.' + ext) # Adiciona o dpi no nome da imagem
+                    removeImage = True
+                else:
                     complements += ' loading="lazy"'
             text = text.replace(result[0] + "@" + result[1], newImage + complements + "}") # Substitui (imagem)@[ajustes] por (imagem){complementos}
     with open(mdFile, 'w', encoding='utf-8') as f:

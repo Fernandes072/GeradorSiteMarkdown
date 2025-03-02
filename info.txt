@@ -1,6 +1,3 @@
-- baixar o pandoc
-    baixe o arquivo .zip: https://github.com/jgm/pandoc/releases/tag/3.6.3
-    descompacte o arquivo
-    copie o pandoc.exe para a pasta pandoc
+- descompacte o pandoc.zip
 
 - pip install cssmin jsmin htmlmin pillow
