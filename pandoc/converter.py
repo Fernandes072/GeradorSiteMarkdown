@@ -8,6 +8,18 @@ import jsmin
 import htmlmin
 from PIL import Image
 
+def dimensionImage(outputPath): # Cria novas imagens com 50% e 75% das dimensões originais
+    for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
+            for file in files:
+                if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".jpeg") or file.endswith(".webp"):
+                    file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
+                    ext = file.split('.')[-1] # Pega a extensão da imagem
+                    image = Image.open(file)
+                    newImage = image.resize((int(image.width * 0.5), int(image.height * 0.5))) # Cria uma nova imagem com 50% das dimensões originais
+                    newImage.save(file.replace("." + ext, '-50%.' + ext)) # Adiciona 50% no nome da imagem e salva a imagem
+                    newImage = image.resize((int(image.width * 0.75), int(image.height * 0.75))) # Cria uma nova imagem com 75% das dimensões originais
+                    newImage.save(file.replace("." + ext, '-75%.' + ext)) # Adiciona 75% no nome da imagem e salva a imagem
+
 def dpiImage(image, outputPath, dpi): # Ajusta o dpi da imagem
     for path, _, files in os.walk(outputPath): #path: caminho da pasta atual / _: subpastas na pasta atual / files: arquivos na pasta atual
         for file in files:
@@ -15,7 +27,7 @@ def dpiImage(image, outputPath, dpi): # Ajusta o dpi da imagem
                 file = os.path.join(path, file) # Junta o caminho da pasta com o nome da imagem original
                 image = Image.open(file) # Abre a imagem original
                 ext = file.split('.')[-1] # Pega a extensão da imagem
-                image.save(file.replace("." + ext, f'-{dpi}.' + ext), dpi=(dpi, dpi)) # Adiciona o dpi no nome da imagem e salva a imagem
+                image.save(file.replace("." + ext, f'-{dpi}dpi.' + ext), dpi=(dpi, dpi)) # Adiciona o dpi no nome da imagem e salva a imagem
                 return file
 
 def resizeImage(image, outputPath, dimensions): # Redimensiona a imagem
@@ -103,10 +115,12 @@ def imageOptimizations(mdFile, outputPath): # Faz otimizações nas imagens
                     if removeImage:
                         os.remove(pathImage) # Apaga a imagem antiga
                     ext = newImage.split('.')[-1] # Pega a extensão da imagem
-                    newImage = newImage.replace("." + ext, f'-{dpi}.' + ext) # Adiciona o dpi no nome da imagem
+                    newImage = newImage.replace("." + ext, f'-{dpi}dpi.' + ext) # Adiciona o dpi no nome da imagem
                     removeImage = True
-                else:
+                elif (adjustment == "lazy-loading"):
                     complements += ' loading="lazy"'
+                else:
+                    complements += f' {adjustment}'
             text = text.replace(result[0] + "@" + result[1], newImage + complements + "}") # Substitui (imagem)@[ajustes] por (imagem){complementos}
     with open(mdFile, 'w', encoding='utf-8') as f:
         f.write(text) # Escreve o conteúdo no arquivo, mas com as alterações
@@ -275,6 +289,7 @@ def main():
     convertMdFiles(inputPath, outputPath)
     copyAssets(outputPath)
     adjustments(outputPath)
+    dimensionImage(outputPath)
     minifyCssJs(outputPath)
     minifyHtml(outputPath)
 
